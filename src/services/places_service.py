@@ -53,6 +53,26 @@ class PlacesService:
 
         return await self.places_repository.find(primary_key)
 
+    @staticmethod
+    def publish_event(place: Place) -> None:
+        """
+        Публикация события о создании нового объекта любимого места для попытки импорта информации по нему в сервисе
+        Countries Informer. :param PlaceModel place: Модель места. :return:
+        """
+        try:
+            place_data = CountryCityDTO(
+                city=place.city,
+                alpha2code=place.country,
+            )
+            EventProducer().publish(
+                queue_name=settings.rabbitmq.queue.places_import, body=place_data.json()
+            )
+        except ValidationError:
+            logger.warning(
+                "The message was not well-formed during publishing event.",
+                exc_info=True,
+            )
+
     async def create_place(self, place: Place) -> Optional[int]:
         """
         Создание нового объекта любимого места по переданным данным.
@@ -72,21 +92,7 @@ class PlacesService:
         primary_key = await self.places_repository.create_model(place)
         await self.session.commit()
 
-        # публикация события о создании нового объекта любимого места
-        # для попытки импорта информации по нему в сервисе Countries Informer
-        try:
-            place_data = CountryCityDTO(
-                city=place.city,
-                alpha2code=place.country,
-            )
-            EventProducer().publish(
-                queue_name=settings.rabbitmq.queue.places_import, body=place_data.json()
-            )
-        except ValidationError:
-            logger.warning(
-                "The message was not well-formed during publishing event.",
-                exc_info=True,
-            )
+        self.publish_event(place)
 
         return primary_key
 
@@ -100,16 +106,24 @@ class PlacesService:
         """
 
         # при изменении координат – обогащение данных путем получения дополнительной информации от API
-        # todo
+        place_object = Place(
+            latitude=place.latitude,
+            longitude=place.longitude,
+            description=place.description,
+        )
+        if location := await LocationClient().get_location(
+            latitude=place.latitude, longitude=place.longitude
+        ):
+            place_object.country = location.alpha2code
+            place_object.city = location.city
+            place_object.locality = location.locality
 
         matched_rows = await self.places_repository.update_model(
             primary_key, **place.dict(exclude_unset=True)
         )
         await self.session.commit()
 
-        # публикация события для попытки импорта информации
-        # по обновленному объекту любимого места в сервисе Countries Informer
-        # todo
+        self.publish_event(place_object)
 
         return matched_rows
 
