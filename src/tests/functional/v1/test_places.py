@@ -122,7 +122,10 @@ class TestPlacesCreateMethod:
 
         response_json = response.json()
         assert "data" in response_json
-        local_coords = [response_json["data"]["latitude"], response_json["data"]["longitude"]]
+        local_coords = [
+            response_json["data"]["latitude"],
+            response_json["data"]["longitude"],
+        ]
         assert isinstance(response_json["data"]["id"], int)
         assert isinstance(response_json["data"]["created_at"], str)
         assert isinstance(response_json["data"]["updated_at"], str)
@@ -178,7 +181,7 @@ class TestPlacesCreateMethod:
         assert isinstance(response_json["items"], list)
         assert len(response_json["items"]) > 0
 
-        place = response_json["items"][len(response_json["items"])-1]
+        place = response_json["items"][len(response_json["items"]) - 1]
         assert isinstance(place["id"], int)
         assert isinstance(place["created_at"], str)
         assert isinstance(place["updated_at"], str)
@@ -295,7 +298,9 @@ class TestPlacesCreateMethod:
             "description": "Новое описание любимого места",
         }
 
-        response = await client.patch((await self.get_endpoint()) + f"/{place_id}", json=patch_request_body)
+        response = await client.patch(
+            (await self.get_endpoint()) + f"/{place_id}", json=patch_request_body
+        )
 
         assert response.status_code == status.HTTP_200_OK
 
@@ -310,4 +315,3 @@ class TestPlacesCreateMethod:
         assert response_json["data"]["country"] == mock_response["countryCode"]
         assert response_json["data"]["city"] == mock_response["city"]
         assert response_json["data"]["locality"] == mock_response["locality"]
-

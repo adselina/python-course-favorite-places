@@ -1,16 +1,14 @@
 import geocoder
+from fastapi import APIRouter, Depends, Query, status
+from fastapi_pagination import Page, paginate
 from fastapi_pagination.bases import AbstractPage
 from geocoder.ipinfo import IpinfoQuery
 
-from fastapi import APIRouter, Depends, Query, status
-from fastapi_pagination import Page, paginate
-
 from exceptions import ApiHTTPException, ObjectNotFoundException
 from models.places import Place
-from schemas.places import PlaceResponse, PlaceUpdate, PlaceDescription
+from schemas.places import PlaceDescription, PlaceResponse, PlaceUpdate
 from schemas.routes import MetadataTag
 from services.places_service import PlacesService
-
 
 router = APIRouter()
 
@@ -139,8 +137,8 @@ async def delete(primary_key: int, places_service: PlacesService = Depends()) ->
     status_code=status.HTTP_201_CREATED,
 )
 async def create_auto(
-        description: PlaceDescription,
-        places_service: PlacesService = Depends(),
+    description: PlaceDescription,
+    places_service: PlacesService = Depends(),
 ) -> PlaceResponse:
     """
     Создание нового объекта любимого места с автоматическим определением координат.

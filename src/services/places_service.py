@@ -54,7 +54,7 @@ class PlacesService:
         return await self.places_repository.find(primary_key)
 
     @staticmethod
-    def publish_event(place: Place):
+    def publish_event(place: Place) -> None:
         """
         Публикация события о создании нового объекта любимого места для попытки импорта информации по нему в сервисе
         Countries Informer. :param PlaceModel place: Модель места. :return:
@@ -112,7 +112,7 @@ class PlacesService:
             description=place.description,
         )
         if location := await LocationClient().get_location(
-                latitude=place.latitude, longitude=place.longitude
+            latitude=place.latitude, longitude=place.longitude
         ):
             place_object.country = location.alpha2code
             place_object.city = location.city

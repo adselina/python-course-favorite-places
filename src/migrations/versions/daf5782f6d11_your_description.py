@@ -5,14 +5,10 @@ Revises: 9e96afce0c9e
 Create Date: 2023-03-16 08:55:30.155537
 
 """
-from alembic import op
-import sqlalchemy as sa
-import sqlmodel
-
 
 # revision identifiers, used by Alembic.
-revision = 'daf5782f6d11'
-down_revision = '9e96afce0c9e'
+revision = "daf5782f6d11"
+down_revision = "9e96afce0c9e"
 branch_labels = None
 depends_on = None
 
